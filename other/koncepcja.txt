@@ -1,0 +1,48 @@
+PROGRAM
+	wejœcie:
+		text[] size~1.000.000
+		patern size~5
+	wyjœcie
+		n - iloœæ trafieñ
+
+DANE
+	ca³oœæ 1.000.000 znaków po 1B ka¿dy
+	ca³oœæ ~ 976.5 KB
+	podzia³
+		na 4 x 244.14 KB
+		na 16 x 61 KB
+	trzeba jednak uwzglêdniæ "nak³adkê" przy podziale na pakiety niezale¿ne
+	maj¹c tekst 0123456789 oraz wzór na 3 znaki i chcemy podzieliæ tekst na pól
+	otrzymamy 012345 456789 - trzeba dodaæ 2 znaki nak³adki ¿e zapewniæ poprawnoœæ
+
+ALGORYTMY
+	1) sekwencyjny
+		przesukujemy ca³oœæ jednym w¹tkiem
+	
+	2) równoleg³y na przemian
+		ka¿dy w¹tek dostaje kolejn¹ komórkê na przemian
+	
+	3) równoleg³y wspó³dzielony
+		przeszukujemy ca³oœæ aczkolwiek ka¿dy w¹tek zaczyna od innego miejsca
+	
+	4) rownoleg³y rozdzielony wg rdzeni
+		rozdzielamy ca³oœæ na 4 niezale¿ne czêœci i ka¿dy w¹tek dostaje pakiet oko³o 245KB
+		od tego miejca mo¿na te¿ podzieliæ sumê trafieñ na podsumy (drobnostka, ale zawsze coœ)
+	
+	5) równoleg³y rozdzielony wg pamiêci
+		rozdzielamy ca³oœæ na 16 niezale¿nych czêœci ka¿da do 64KB, czyli po 4 czêœci na rdzeñ
+		tu do sprawdzenia dwa podejœcia:
+			pakiety wype³nione do koñca 64KB, a ostatni niepe³ny
+			pakiety rozdzielone po równo, czyli oko³o 61KB ka¿dy
+	
+	?) propozycja eksperymentalna - podzia³ z uwzglêdnieniem d³ugoœci linii cache
+		ka¿da czêœæ jast dodatkowo dzielona na czêœci o rozmiarze linii cache (prawdopodobnie 64B)
+		z tym ¿e te czêœci nie s¹ ju¿ niezale¿ne, a maj¹ jedynie uproœciæ pobieranie danych z pamiêci
+		jest to tylko propozycja i mo¿e nawet spowolniæ ca³oœæ aczkolwiek jest do sprawdzenia
+
+CACHE
+	ka¿dy rdzeñ posiada w³asne
+		L1: 64KB
+		L2: 512KB
+	wspó³dziel¹ natomiast
+		L3: 6MB
