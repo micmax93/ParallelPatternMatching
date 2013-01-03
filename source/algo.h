@@ -1,5 +1,6 @@
 #include <string.h>
 #include <intrin.h>
+#include <time.h>
 unsigned long long start,stop;
 
 ///Przeszukuje tekst w poszukukiwaniu wzorca
@@ -41,9 +42,9 @@ void stopTimeCount()
 	stop=__rdtsc();
 }
 
-double getTime()
+int getTime()
 {
 	double t=stop-start;
-	t/=1000.0;
+	t/=10000;
 	return t;
 }

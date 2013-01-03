@@ -69,10 +69,10 @@ int main(int argc,char **argv)
 	srand(time(0));
 
 	first='A';
-	last='M';
-	Tsize=1000000;
-	Psize=5;
-	minrep=5;
+	last='C';
+	Tsize=5000000;
+	Psize=18;
+	minrep=1;
 	
 	char* text=getRandString(Tsize);
 	char* pattern=generatepattern(text,Psize);
