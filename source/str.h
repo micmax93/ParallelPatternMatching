@@ -3,13 +3,19 @@
 #include <string>
 #include <fstream>
 using namespace std;
-
+int expected;
 
 ///£aduje tekst i wzór z pliku
 void loadInstance(char *filename,char **text,char **pattern)
 {
 	ifstream file;
 	file.open(filename);
+	if(!file.is_open())
+	{
+		cout << "B³êdna nazwa pliku!!!" << endl;
+		system("pause");
+		exit(0);
+	}
 	string buf;
 	
 	buf.clear();
@@ -24,7 +30,7 @@ void loadInstance(char *filename,char **text,char **pattern)
 
 	int rep;
 	file >> rep;
-	cout << "Expected count " << rep << endl;
+	expected=rep;
 
 	file.close();
 }

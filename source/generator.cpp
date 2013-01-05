@@ -70,7 +70,7 @@ int main(int argc,char **argv)
 
 	first='A';
 	last='C';
-	Tsize=5000000;
+	Tsize=150000000;
 	Psize=18;
 	minrep=1;
 	
@@ -93,11 +93,14 @@ int main(int argc,char **argv)
 	fname+="-";
 	fname+=pattern;
 
+
 	ofstream file;
 	file.open(fname.c_str(),ios::trunc);
+
 	file << text << endl;
 	file << pattern << endl;
 	file << repeats << endl;
+
 	file.close();
 	system("pause");
 	return 0;
