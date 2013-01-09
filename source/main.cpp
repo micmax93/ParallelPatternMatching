@@ -3,188 +3,291 @@
 #include <conio.h>
 #include <omp.h>
 #include "str.h"
-#include "algo.h"
 using namespace std;
 
 int algo1(char *text,char *pattern)
 {
-	int n;
-	n=countPatterns(text,pattern);
+	int n=0;
+	char *tptr,*pptr;
+	while(*text!=NULL)
+	{
+		if(*text==*pattern)
+		{
+			tptr=text+1;
+			pptr=pattern+1;
+			while(true)
+			{
+				if(*pptr==NULL)
+				{
+					n++;
+					break;
+				}
+				if(*tptr!=*pptr)
+				{
+					break;
+				}
+				tptr++;
+				pptr++;
+			}
+		}
+		text++;
+	}
 	return n;
 }
 
-int algo2(char *text,char *pattern)
+int algo2(char *text,char *pattern,int tsize)
 {
 	int n=0;
-	int size=strSize(text);
 
-#pragma omp parallel for
-	for(int i=0;i<size;i++)
+	#pragma omp parallel for
+	for(int i=0;i<tsize;i++)
 	{
-		if(checkPattern(&text[i],pattern))
-			{n++;}
+		char *tptr,*pptr;
+		if(text[i]==*pattern)
+		{
+			tptr=&text[i+1];
+			pptr=pattern+1;
+			while(true)
+			{
+				if(*pptr==NULL)
+				{
+					++n;
+					break;
+				}
+				if(*tptr!=*pptr)
+				{
+					break;
+				}
+				tptr++;
+				pptr++;
+			}
+		}
 	}
 	
 	return n;
 }
 
-int algo3(char *text,char *pattern)
+int algo3(char *text,char *pattern,int tsize)
 {
 	int n=0;
-	int size=strSize(text);
 
-#pragma omp parallel for
+	#pragma omp parallel for
 	for(int i=0;i<4;i++)
 	{
-		int m=i*size/4;
-		for(int j=0;j<size/4;j++)
+		char *tptr,*pptr;
+		int m=i*tsize/4;
+		for(int j=0;j<tsize/4;j++)
 		{
-			if(checkPattern(&text[m+j],pattern))
-				{n++;}
+			if(text[m+j]==*pattern)
+			{
+				tptr=&text[m+j+1];
+				pptr=pattern+1;
+				while(true)
+				{
+					if(*pptr==NULL)
+					{
+						++n;
+						break;
+					}
+					if(*tptr!=*pptr)
+					{
+						break;
+					}
+					tptr++;
+					pptr++;
+				}
+			}
 		}
 	}
 
 	return n;
 }
 
-int algo4(char *text,char *pattern)
+int algo4(char **ttab,char *pattern)
 {
-	int tsize=strSize(text);
-	int psize=strSize(pattern);
 	int s=4;
-	int *n=new int[s];
-	char **tab=transferSplit(text,s,psize-1);
+	int n=0;
 
-#pragma omp parallel for
+	#pragma omp parallel for shared(n)
 	for(int i=0;i<s;i++)
 	{
-		n[i]=countPatterns(tab[i],pattern);		
+		int subsum=0;
+		char *tptr,*pptr;
+		char *text=ttab[i];
+
+		while(*text!=NULL)
+		{
+			if(*text==*pattern)
+			{
+				tptr=text+1;
+				pptr=pattern+1;
+				while(true)
+				{
+					if(*pptr==NULL)
+					{
+						subsum++;
+						break;
+					}
+					if(*tptr!=*pptr)
+					{
+						break;
+					}
+					tptr++;
+					pptr++;
+				}
+			}
+			text++;
+		}
+		
+		#pragma omp atomic
+		n+=subsum;
 	}
 
-	int sum=0;
-	for(int i=0;i<s;i++)
-	{
-		sum+=n[i];
-	}
-	return sum;
+	return n;
 }
 
-
-int algo5(char *text,char *pattern)
+int algo5(char **ttab,char *pattern,int s)
 {
-	int tsize=strSize(text);
-	int psize=strSize(pattern);
-	int s=calcSplitN(tsize,60*1024,psize-1,true);
-	int *n=new int[s];
-	char **tab=transferSplit(text,s,psize-1);
-
-#pragma omp parallel for
+	int n=0;
+	#pragma omp parallel for
 	for(int i=0;i<s;i++)
 	{
-		n[i]=countPatterns(tab[i],pattern);		
+		int subsum=0;
+		char *tptr,*pptr;
+		char *text=ttab[i];
+
+		while(*text!=NULL)
+		{
+			if(*text==*pattern)
+			{
+				tptr=text+1;
+				pptr=pattern+1;
+				while(true)
+				{
+					if(*pptr==NULL)
+					{
+						subsum++;
+						break;
+					}
+					if(*tptr!=*pptr)
+					{
+						break;
+					}
+					tptr++;
+					pptr++;
+				}
+			}
+			text++;
+		}	
+		
+		#pragma omp atomic
+		n+=subsum;
 	}
 
-	int sum=0;
-	for(int i=0;i<s;i++)
-	{
-		sum+=n[i];
-	}
-	return sum;
+	return n;
 }
 
-int algo6(char *text,char *pattern)
+int algo6(char **ttab,char *pattern,int s)
 {
-	int tsize=strSize(text);
-	int psize=strSize(pattern);
-	int s=calcSplitN(tsize,60*1024,psize-1,true);
-	int *n=new int[s];
-	char **tab=transferSplit(text,s,psize-1);
+	int n=0;
 
-#pragma omp parallel for num_threads(4)
+	#pragma omp parallel for num_threads(4)
 	for(int i=0;i<s;i++)
 	{
-		n[i]=countPatterns(tab[i],pattern);		
-	}
+		int subsum=0;
+		char *tptr,*pptr;
+		char *text=ttab[i];
 
-
-	int sum=0;
-	for(int i=0;i<s;i++)
-	{
-		sum+=n[i];
+		while(*text!=NULL)
+		{
+			if(*text==*pattern)
+			{
+				tptr=text+1;
+				pptr=pattern+1;
+				while(true)
+				{
+					if(*pptr==NULL)
+					{
+						subsum++;
+						break;
+					}
+					if(*tptr!=*pptr)
+					{
+						break;
+					}
+					tptr++;
+					pptr++;
+				}
+			}
+			text++;
+		}	
+		
+		#pragma omp atomic
+		n+=subsum;
 	}
-	return sum;
+	return n;
 }
 
-int repeatAndApproximateTime(void (*algo) (char*, char*), char *text, char *pattern, int iter = 100)
-{
-	if (iter > 500 || iter < 1)
-		iter = 100;
-	double sum = 0;
-
-	for(int i=0; i<iter; ++i)
-	{
-		startTimeCount();
-		algo(text, pattern);
-		stopTimeCount();
-		if (i==0)
-			sum = getTime();
-		else
-			sum = (sum + getTime())/2;
-	}
-
-	return sum;
-}
 
 int main(int argc,char **argv)
 {
 	char *text,*pattern;
-	loadInstance("AC-382-AAAAAAAAAAAABAAAAA",&text,&pattern);
-	//loadInstance("AM-9-EAAAA",&text,&pattern);
+	//loadInstance("AC-382-AAAAAAAAAAAABAAAAA",&text,&pattern);
+	loadInstance("AM-9-EAAAA",&text,&pattern);
 	int rep;
-	/*
+	int tsize=strSize(text);
+	int psize=strSize(pattern);
+	//cout << "Expected " << expected << endl;
+
 	rep=algo1(text,pattern);
 	if(rep!=expected)
 	{
 		cout << "Error!" << endl;
-		getchar();
-	}*/
-	
-	/*
-	rep=algo2(text,pattern);
-	if(rep!=expected)
-	{
-		cout << "Error!" << endl;
+		cout << "algo1=" << rep << endl;
 		getchar();
 	}
 	
-	rep=algo3(text,pattern);
+	rep=algo2(text,pattern,tsize);
 	if(rep!=expected)
 	{
 		cout << "Error!" << endl;
+		cout << "algo2=" << rep << endl;
 		getchar();
 	}
 	
-	
-	rep=algo4(text,pattern);
+	rep=algo3(text,pattern,tsize);
 	if(rep!=expected)
 	{
 		cout << "Error!" << endl;
+		cout << "algo3=" << rep << endl;
 		getchar();
 	}
 	
 	
-	rep=algo5(text,pattern);
+	char **tab=transferSplit(text,4,psize-1);
+	rep=algo4(tab,pattern);
 	if(rep!=expected)
 	{
 		cout << "Error!" << endl;
+		cout << "algo4=" << rep << endl;
 		getchar();
 	}
-	*/
 	
-	rep=algo6(text,pattern);
+	int s=calcSplitN(tsize,60*1024,psize-1,true);
+	tab=transferSplit(text,s,psize-1);
+	rep=algo5(tab,pattern,s);
 	if(rep!=expected)
 	{
 		cout << "Error!" << endl;
+		cout << "algo5=" << rep << endl;
+		getchar();
+	}
+	
+	rep=algo6(tab,pattern,s);
+	if(rep!=expected)
+	{
+		cout << "Error!" << endl;
+		cout << "algo6=" << rep << endl;
 		getchar();
 	}
 	
